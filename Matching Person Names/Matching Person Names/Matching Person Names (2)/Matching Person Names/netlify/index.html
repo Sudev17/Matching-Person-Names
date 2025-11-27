@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Matching System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5rem;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+        
+        .search-container {
+            display: flex;
+            margin-bottom: 30px;
+        }
+        
+        #nameInput {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e1e1e1;
+            border-radius: 50px 0 0 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        #nameInput:focus {
+            border-color: #667eea;
+        }
+        
+        #searchButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 0 50px 50px 0;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        #searchButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        #searchButton:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .section-title {
+            color: #333;
+            margin: 25px 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .best-match {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .best-match h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .best-match-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .best-match-score {
+            font-size: 1.2rem;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .matches-list {
+            list-style: none;
+        }
+        
+        .match-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.2s;
+        }
+        
+        .match-item:hover {
+            background-color: #f9f9f9;
+        }
+        
+        .match-info {
+            flex: 1;
+        }
+        
+        .match-name {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .match-rank {
+            font-weight: bold;
+            color: #667eea;
+            margin-right: 15px;
+            width: 30px;
+            display: inline-block;
+        }
+        
+        .match-score {
+            color: #666;
+        }
+        
+        .similarity-bar {
+            flex: 0 0 200px;
+            height: 8px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .similarity-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .instructions {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ul {
+            padding-left: 20px;
+        }
+        
+        .instructions li {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .search-container {
+                flex-direction: column;
+            }
+            
+            #nameInput {
+                border-radius: 50px;
+                margin-bottom: 10px;
+            }
+            
+            #searchButton {
+                border-radius: 50px;
+                padding: 15px;
+            }
+            
+            .similarity-bar {
+                flex: 0 0 100px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Name Matching System</h1>
+        <p class="subtitle">Find the best matching names with semantic similarity</p>
+        
+        <div class="instructions">
+            <h3>How to Use:</h3>
+            <ul>
+                <li>Enter a name in the search box (e.g., "Gita", "sudev", "Ram")</li>
+                <li>Click "Find Matches" or press Enter</li>
+                <li>View the best match and top 10 similar names</li>
+                <li>Results show semantic similarity scores</li>
+            </ul>
+        </div>
+        
+        <div class="search-container">
+            <input type="text" id="nameInput" placeholder="Enter a name to search (e.g., Gita, sudev, Ram)..." autocomplete="off">
+            <button id="searchButton">Find Matches</button>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Searching for matches...</p>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="results-container" id="resultsContainer">
+            <div class="best-match">
+                <h3>🎯 Best Match</h3>
+                <div class="best-match-name" id="bestMatchName">-</div>
+                <div class="best-match-score">Similarity: <span id="bestMatchScore">0.0000</span></div>
+            </div>
+            
+            <h2 class="section-title">🏆 Top Matches</h2>
+            <ul class="matches-list" id="matchesList">
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('nameInput');
+            const searchButton = document.getElementById('searchButton');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const loading = document.getElementById('loading');
+            const errorDiv = document.getElementById('error');
+            const bestMatchName = document.getElementById('bestMatchName');
+            const bestMatchScore = document.getElementById('bestMatchScore');
+            const matchesList = document.getElementById('matchesList');
+            async function searchName() {
+                const name = nameInput.value.trim();
+                if (!name) {
+                    showError('Please enter a name to search');
+                    return;
+                }
+                loading.style.display = 'block';
+                resultsContainer.style.display = 'none';
+                errorDiv.style.display = 'none';
+                searchButton.disabled = true;
+                try {
+                    let response;
+                    try {
+                        response = await fetch('/api/match', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ name: name })
+                        });
+                    } catch (e) {
+                        response = await fetch('https://rahul-basi-names.loca.lt/api/match', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ name: name })
+                        });
+                    }
+                    const data = await response.json();
+                    if (!response.ok) {
+                        throw new Error(data.error || 'An error occurred');
+                    }
+                    loading.style.display = 'none';
+                    resultsContainer.style.display = 'block';
+                    bestMatchName.textContent = data.best_match.name;
+                    bestMatchScore.textContent = data.best_match.score.toFixed(4);
+                    matchesList.innerHTML = '';
+                    data.top_matches.forEach((match, index) => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'match-item';
+                        const percentage = Math.round(match.score * 100);
+                        listItem.innerHTML = `
+                            <span class="match-rank">${index + 1}.</span>
+                            <span class="match-name">${match.name}</span>
+                            <div class="similarity-bar">
+                                <div class="similarity-fill" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="match-score">${match.score.toFixed(4)}</span>
+                        `;
+                        matchesList.appendChild(listItem);
+                    });
+                } catch (error) {
+                    loading.style.display = 'none';
+                    showError(error.message);
+                } finally {
+                    searchButton.disabled = false;
+                }
+            }
+            function showError(message) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                resultsContainer.style.display = 'none';
+            }
+            searchButton.addEventListener('click', searchName);
+            nameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchName();
+                }
+            });
+            nameInput.focus();
+        });
+    </script>
+</body>
+</html>

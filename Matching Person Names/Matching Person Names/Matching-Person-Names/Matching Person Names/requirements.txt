@@ -1,0 +1,6 @@
+sentence-transformers>=2.2.0
+numpy
+torch
+scikit-learn
+flask
+flask-cors

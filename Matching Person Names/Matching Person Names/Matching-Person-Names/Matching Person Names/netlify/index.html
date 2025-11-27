@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Name Matching System</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 700px; margin: auto; }
+        .results { margin-top: 20px; }
+        .match { display: flex; justify-content: space-between; padding: 6px 10px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; }
+        .bar { height: 8px; background: #4caf50; border-radius: 4px; }
+        .best { font-weight: bold; }
+    </style>
+ </head>
+ <body>
+    <div class="container">
+        <h2>Name Matching</h2>
+        <input id="nameInput" type="text" placeholder="Enter a name" style="width: 70%; padding: 8px" />
+        <button id="searchBtn">Search</button>
+        <div id="status"></div>
+        <div class="results">
+            <div id="best"></div>
+            <div id="top"></div>
+        </div>
+    </div>
+    <script>
+        const status = document.getElementById('status');
+        const best = document.getElementById('best');
+        const top = document.getElementById('top');
+        document.getElementById('searchBtn').addEventListener('click', async () => {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) return;
+            status.textContent = 'Searching...';
+            best.textContent = '';
+            top.textContent = '';
+            let response;
+            try {
+                response = await fetch('/api/match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+            } catch (e) {
+                response = await fetch('/.netlify/functions/match', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+            }
+            const data = await response.json();
+            status.textContent = '';
+            if (data.error) { status.textContent = data.error; return; }
+            if (data.best_match) {
+                best.innerHTML = `<div class="match best"><span>${data.best_match.name}</span><span>${data.best_match.score.toFixed(2)}</span></div>`;
+            }
+            if (data.top_matches) {
+                data.top_matches.forEach(m => {
+                    const wrap = document.createElement('div');
+                    wrap.className = 'match';
+                    wrap.innerHTML = `<span>${m.name}</span><span>${m.score.toFixed(2)}</span>`;
+                    top.appendChild(wrap);
+                });
+            }
+        });
+    </script>
+ </body>
+ </html>
